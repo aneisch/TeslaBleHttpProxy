@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-var ExceptedCommands = []string{"vehicle_data", "auto_conditioning_start", "auto_conditioning_stop", "charge_port_door_open", 
+var ExceptedCommands = []string{"vehicle_data", "auto_conditioning_start", "auto_conditioning_stop", "set_temps", "charge_port_door_open", 
 	"charge_port_door_close", "flash_lights", "wake_up", "set_charging_amps", "set_charge_limit", "charge_start", "charge_stop", 
 	"session_info", "honk_horn", "door_lock", "door_unlock", "set_sentry_mode"}
 var ExceptedEndpoints = []string{"charge_state", "climate_state"}
@@ -30,6 +30,38 @@ func (command *Command) Send(ctx context.Context, car *vehicle.Vehicle) (shouldR
 	case "auto_conditioning_stop":
 		if err := car.ClimateOff(ctx); err != nil {
 			return true, fmt.Errorf("failed to stop auto conditioning: %s", err)
+		}
+	case "set_temps":
+		// Driver
+		var driverTemp int32
+		var passengerTemp int32
+		switch v := command.Body["driverTemp"].(type) {
+		case float64:
+			driverTemp = int32(v)
+		case string:
+			if driverTemp64, err := strconv.ParseInt(v, 10, 32); err == nil {
+				driverTemp = int32(driverTemp64)
+			} else {
+				return false, fmt.Errorf("driver temp parsing error: %s", err)
+			}
+		default:
+			return false, fmt.Errorf("driver temp missing in body")
+		}
+		// Passenger
+		switch v := command.Body["passengerTemp"].(type) {
+		case float64:
+			passengerTemp = int32(v)
+		case string:
+			if passengerTemp64, err := strconv.ParseInt(v, 10, 32); err == nil {
+				passengerTemp = int32(passengerTemp64)
+			} else {
+				return false, fmt.Errorf("passenger temp parsing error: %s", err)
+			}
+		default:
+			return false, fmt.Errorf("passenger temp missing in body")
+		}
+		if err := car.ChangeClimateTemp(ctx, driverTemp, passengerTemp); err != nil {
+			return true, fmt.Errorf("failed to set temperature %d %d: %s", driverTemp, passengerTemp, err)
 		}
 	case "charge_port_door_open":
 		if err := car.ChargePortOpen(ctx); err != nil {
