@@ -33,14 +33,14 @@ func (command *Command) Send(ctx context.Context, car *vehicle.Vehicle) (shouldR
 		}
 	case "set_temps":
 		// Driver
-		var driverTemp int32
-		var passengerTemp int32
+		var driverTemp float32
+		var passengerTemp float32
 		switch v := command.Body["driverTemp"].(type) {
 		case float64:
-			driverTemp = int32(v)
+			driverTemp = float32(v)
 		case string:
-			if driverTemp64, err := strconv.ParseInt(v, 10, 32); err == nil {
-				driverTemp = int32(driverTemp64)
+			if driverTemp64, err := strconv.ParseFloat(v, 32); err == nil {
+				driverTemp = float32(driverTemp64)
 			} else {
 				return false, fmt.Errorf("driver temp parsing error: %s", err)
 			}
@@ -50,10 +50,10 @@ func (command *Command) Send(ctx context.Context, car *vehicle.Vehicle) (shouldR
 		// Passenger
 		switch v := command.Body["passengerTemp"].(type) {
 		case float64:
-			passengerTemp = int32(v)
+			passengerTemp = float32(v)
 		case string:
-			if passengerTemp64, err := strconv.ParseInt(v, 10, 32); err == nil {
-				passengerTemp = int32(passengerTemp64)
+			if passengerTemp64, err := strconv.ParseFloat(v, 32); err == nil {
+				passengerTemp = float32(passengerTemp64)
 			} else {
 				return false, fmt.Errorf("passenger temp parsing error: %s", err)
 			}
