@@ -32,7 +32,7 @@ func (command *Command) Send(ctx context.Context, car *vehicle.Vehicle) (shouldR
 			return true, fmt.Errorf("failed to stop auto conditioning: %s", err)
 		}
 	case "set_temps":
-		// Driver
+		// Driver temp in C
 		var driverTemp float32
 		var passengerTemp float32
 		switch v := command.Body["driverTemp"].(type) {
@@ -47,7 +47,7 @@ func (command *Command) Send(ctx context.Context, car *vehicle.Vehicle) (shouldR
 		default:
 			return false, fmt.Errorf("driver temp missing in body")
 		}
-		// Passenger
+		// Passenger temp in C
 		switch v := command.Body["passengerTemp"].(type) {
 		case float64:
 			passengerTemp = float32(v)
